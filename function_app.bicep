@@ -6,31 +6,28 @@ param location string
 param tags object
 
 @description('Provide the name of function app')
-param function_app_name string
+param functionAppName string
 
 @description('Name of app service plan')
-param service_plan_name string
+param servicePlanName string
 
 @description('Name of storage account')
-param storage_account_name string
+param storageAccountName string
 
 @description('Name of application insight')
-param app_insights_name string
+param appInsightsName string
 
-param private_endpoint_name string
-
+@description('Provide the function app configuration')
 param functionAppConfiguration FunctionAppConfiguration
 
-param subnetId string
-
-param virtualNetworkSubnetId string
-
 param publicNetworkAccess bool = false
+
+param subnetInfo object
 
 var isReserved = (functionAppConfiguration.osType == 'Linux') ? true : false
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
-  name: storage_account_name
+  name: storageAccountName
   location: location
   kind: 'StorageV2'
   sku: {
@@ -39,7 +36,7 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
 }
 
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
-  name: app_insights_name
+  name: appInsightsName
   location: location
   kind: 'web'
   properties: {
@@ -49,7 +46,7 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
 }
 
 resource servicePlan 'Microsoft.Web/serverfarms@2024-04-01' = {
-  name: service_plan_name
+  name: servicePlanName
   location: location
   sku: functionAppConfiguration.sku
   properties: {
@@ -58,7 +55,7 @@ resource servicePlan 'Microsoft.Web/serverfarms@2024-04-01' = {
 }
 
 resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
-  name: function_app_name
+  name: functionAppName
   location: location
   tags: tags
   kind: (isReserved ? 'functionapp,linux' : 'functionapp')
@@ -69,10 +66,10 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
     serverFarmId: servicePlan.id
     enabled: true
     publicNetworkAccess: publicNetworkAccess ? 'Enabled' : 'Disabled'
-    virtualNetworkSubnetId: virtualNetworkSubnetId
+    virtualNetworkSubnetId: subnetInfo.id
     hostNameSslStates: [
       {
-        name: '${function_app_name}.azurewebsites.net'
+        name: '${functionAppName}.azurewebsites.net'
         sslState: 'Disabled'
         hostType: 'Standard'
       }
@@ -83,7 +80,7 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
       appSettings: [
         {
           name: 'WEBSITE_CONTENTSHARE'
-          value: toLower(function_app_name)
+          value: toLower(functionAppName)
         }
         {
           name: 'FUNCTIONS_EXTENSION_VERSION'
@@ -103,11 +100,11 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
         }
         {
           name: 'AzureWebJobsStorage'
-          value: 'DefaultEndpointsProtocol=https;AccountName=${storage_account_name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'
         }
         {
           name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
-          value: 'DefaultEndpointsProtocol=https;AccountName=${storage_account_name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'
         }
       ]
       autoHealEnabled: false
@@ -117,16 +114,5 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
   }
 }
 
-module privateEndpoint 'private_endpoint.bicep' = {
-  name: 'privateEndpoint'
-  params: {
-    location: location
-    tags: tags
-    private_endpoint_name: private_endpoint_name
-    serviceToLink: functionApp.id
-    groupIds: [
-      'sites'
-    ]
-    subnetId: subnetId
-  }
-}
+output id string = functionApp.id
+output name string = functionApp.name

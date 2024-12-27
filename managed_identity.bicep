@@ -5,10 +5,10 @@ param location string
 param tags object
 
 @description('Provide the name of managed identity')
-param identity_name string
+param identityName string
 
 resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-07-31-preview' = {
-  name: identity_name
+  name: identityName
   location: location
   tags: tags
 }

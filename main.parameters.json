@@ -10,20 +10,29 @@
         "created-by": "xyz"
       }
     },
-    "function_app_name": {
-      "value": "func-test-013"
+    "virtualNetworkName": {
+      "value": "vnet-test-015"
     },
-    "service_plan_name": {
-      "value": "asp-test-013"
+    "vnetAddressPrefix": {
+      "value": "192.168.0.0/16"
     },
-    "storage_account_name": {
-      "value": "sttestdev013"
+    "functionAppName": {
+      "value": "func-test-015"
     },
-    "application_insights_name": {
-      "value": "app-insight-013"
+    "servicePlanName": {
+      "value": "asp-test-015"
     },
-    "private_endpoint_name": {
-      "value": "pep-test-013"
+    "storageAccountName": {
+      "value": "sttest015"
+    },
+    "appInsightsName": {
+      "value": "appi-test-015"
+    },
+    "publicIpName": {
+      "value": "pip-test-015"
+    },
+    "natGatewayName": {
+      "value": "ngw-test-015"
     },
     "functionAppConfiguration": {
       "value": {
@@ -40,14 +49,8 @@
         "worker_runtime": "dotnet"
       }
     },
-    "identity_name": {
-      "value": "id-test-013"
-    },
-    "subnetId": {
-      "value": "/subscriptions/ece96d80-c934-4839-bb90-c2f9ff7c94f9/resourceGroups/rg-bcbsgpt-dev-eastus-011/providers/Microsoft.Network/virtualNetworks/vnet-bcbsgpt-dev-011/subnets/primary"
-    },
-    "virtualNetworkSubnetId": {
-      "value": "/subscriptions/ece96d80-c934-4839-bb90-c2f9ff7c94f9/resourceGroups/rg-bcbsgpt-dev-eastus-011/providers/Microsoft.Network/virtualNetworks/vnet-bcbsgpt-dev-011/subnets/func-snet"
+    "identityName": {
+      "value": "id-test-015"
     }
   }
 }

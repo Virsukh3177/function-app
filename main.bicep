@@ -5,32 +5,70 @@ param location string
 @description('Set of tags')
 param tags object
 
+@description('Name of the virtual network resource')
+param virtualNetworkName string
+
+@description('Virtual network address prefix')
+param vnetAddressPrefix string
+
 @description('Provide the name of function app')
-param function_app_name string
+param functionAppName string
 
-param service_plan_name string
+@description('Name of app service plan')
+param servicePlanName string
 
-param storage_account_name string
+@description('Name of storage account')
+param storageAccountName string
 
-param app_insights_name string
+@description('Name of application insight')
+param appInsightsName string
 
-param private_endpoint_name string
+@description('Name of public Ip')
+param publicIpName string
 
+@description('Name of the NAT gateway resource')
+param natGatewayName string
+
+@description('Provide the function app configuration')
 param functionAppConfiguration FunctionAppConfiguration
 
 @description('Provide the name of managed identity')
-param identity_name string
+param identityName string
 
-param subnetId string
+func transfromToObject(obj array) object =>
+  toObject(obj, entry => '${entry.name}', entry => entry)
 
-param virtualNetworkSubnetId string
+var subnetsInfo = transfromToObject(virtualNetwork.outputs.subnetInfo)
+output subnetsInfo object = subnetsInfo.default
+
 
 module managedIdentity 'managed_identity.bicep' = {
   name: 'managedIdentity'
   params: {
     location: location
+    identityName: identityName
     tags: tags
-    identity_name: identity_name
+  }
+}
+
+module natGateway 'nat_gateway.bicep' = {
+  name: 'natGateway'
+  params: {
+    location: location
+    natGatewayName: natGatewayName
+    publicIpName: publicIpName
+    tags: tags
+  }
+}
+
+module virtualNetwork 'vnet.bicep' = {
+  name: 'virtualNetwork'
+  params: {
+    location: location
+    virtualNetworkName: virtualNetworkName
+    vnetAddressPrefix: vnetAddressPrefix
+    natGatewayName: natGateway.outputs.name
+    tags: tags
   }
 }
 
@@ -41,14 +79,14 @@ module functionApp 'function_app.bicep' = {
   ]
   params: {
     location: location
-    tags: tags
-    app_insights_name: app_insights_name
+    appInsightsName: appInsightsName
     functionAppConfiguration: functionAppConfiguration
-    function_app_name: function_app_name
-    private_endpoint_name: private_endpoint_name
-    service_plan_name: service_plan_name
-    storage_account_name: storage_account_name
-    subnetId: subnetId
-    virtualNetworkSubnetId: virtualNetworkSubnetId
+    functionAppName: functionAppName
+    servicePlanName: servicePlanName
+    storageAccountName: storageAccountName
+    subnetInfo: subnetsInfo['func-subnet']
+    tags: tags
   }
 }
+
+
